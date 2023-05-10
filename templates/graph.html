@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Moving Koo_Min</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </head>
+
+    <body>
+        <div style="display: flex;"> <!-- y 좌표 나타내는 차트 구역 & 쿠민 움직이는 구역 -->
+            <yChart> <!-- y 좌표 차트 -->
+                <div><canvas class="y" id="myYChart" style="height:600px; width: 100px;"></canvas></div>
+                <script>
+                    const cty = document.getElementById('myYChart');
+                    const yChart = new Chart(cty, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label:'y',
+                                data: [],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                },
+                                y: {
+                                    min: 0,
+                                    max: 1024, // y 좌표 범위 0 ~ 1024, 100마다 표시
+                                        ticks: {
+                                        stepSize: 100
+                                    }
+                                }
+                            },
+                            indexAxis: 'x',
+                            elements: {
+                                bar: {
+                                    borderWidth: 1,
+                                }
+                                },
+                                responsive: true,
+                                plugins: {
+                                legend: {
+                                    display: false, // 범례 표시 안함 
+                                },
+                                title: {
+                                    display: false, // 제목 표시 안함 
+                                },
+                            },
+                            animation: {
+                                duration: 0, // 값 바뀔때마다 그래프 그려지는 모션 없음. 모션 넣을거면 숫자 변경 기본값은 아마 1000
+                            },
+                        },
+                    });
+
+                    function update_character_position() {
+                        $.getJSON('/position', function(data) { // DB 데이터 불러오기 및 chart로 넘기기
+                            if (yChart.data.labels.length == 1) { // 그래프 1개만 표시
+                                yChart.data.labels.shift();
+                                yChart.data.datasets[0].data.shift();
+                            }
+
+                            yChart.data.labels.push('y'); // 라벨 
+                            yChart.data.datasets[0].data.push(data.y); // 데이터값
+                            yChart.update(); // 업데이트
+                        });
+                    }
+                    setInterval(update_character_position, 10); // 10마다 불러옴. 
+
+                </script>
+            </yChart>
+            <Koo_Min>
+                <div class="a">
+                    <img class="img" src="static\KOOMIN.png" alt="koo_min">
+                    <script>
+                        function move_character(x, y) {
+                            var character = document.getElementById("id");
+                            var joyx = x
+                            var joyy = y
+                            $('.img').css({
+                                left: joyx + 100 + "px", // 쿠민 웹 상 x위치 보정
+                                top : 600 - joyy / 1024 * 600 + "px" // 쿠민 웹 상 y위치 보정
+                            })
+                        }
+            
+                        function update_character_position() {
+                            $.getJSON('/position', function(data) { // DB 데이터 값 불러오기
+                                move_character(data.x, data.y);
+                            });
+                        }
+                        setInterval(update_character_position, 10); // 10마다 불러옴
+                    </script>
+                </div>
+            </Koo_Min>
+        </div>
+        <div style="display: flex;"> <!-- 왼쪽 하단의 작은 빈 구역 & x 좌표 나타내는 차트 구역 -->
+            <div style="height: 100px; width: 100px;"></div> 
+            <xChart> <!-- x 좌표 차트(y 좌표 차트와 내용 동일) -->
+                <div><canvas class="x" id="myXChart" style="height:100px; width: 1024px;"></canvas></div>
+                <script>
+                    const ctx = document.getElementById('myXChart');
+                    const xChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label:'X',
+                                data: [],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            scales: {
+                                y: {
+                                    stacked: true,
+                                },
+                                x: {
+                                    min: 0,
+                                    max: 1024, // x 좌표 범위 0 ~ 1024, 100마다 표시
+                                        ticks: {
+                                        stepSize: 100
+                                    }
+                                }
+                            },
+                            indexAxis: 'y',
+                            elements: {
+                                bar: {
+                                    borderWidth: 1,
+                                }
+                                },
+                                responsive: true,
+                                plugins: {
+                                legend: {
+                                    display: false, // 범례 표시 안함 
+                                },
+                                title: {
+                                    display: false, // 제목 표시 안함 
+                                }
+                            },
+                            animation: {
+                                duration: 0,
+                            },
+                        },
+                    });
+                    
+                    function update_character_position() { 
+                        $.getJSON('/position', function(data) { // DB 데이터 불러오기 및 chart로 넘기기
+                            if (xChart.data.labels.length == 1) {// 그래프 1개만 표시
+                                xChart.data.labels.shift();
+                                xChart.data.datasets[0].data.shift();
+                            }
+
+                            xChart.data.labels.push('x'); // 라벨
+                            xChart.data.datasets[0].data.push(data.x); // 데이터값
+                            xChart.update(); 업데이트
+                        });
+                    }
+                    setInterval(update_character_position, 10); // 10마다 불러옴.
+                </script>
+            </xChart>
+        </div>
+    </body>
+</html>
+
+<style>
+    body{
+        margin: 0;
+        width: 1124px; /* 전체 너비 */
+    }
+
+    .y {
+        height: 600px; /* yChart 높이 */
+    }
+
+    .x {
+        width: 1024px;
+    }
+
+
+    div.a {
+        width: 1094px; 
+        height: 600px; 
+        border: dashed; /* 테두리 */
+        border-width: 2px; /* 테두리 두께 */
+    }
+
+    .img {
+        width: 70px; /* 쿠민 이미지 크기 */
+        height: 70px;
+        
+        position: sticky;
+        z-index: -100; 
+        
+    }
+</style>
